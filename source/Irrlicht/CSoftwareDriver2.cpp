@@ -2294,7 +2294,7 @@ void CBurningVideoDriver::drawStencilShadowVolume(const core::array<core::vector
 	//glStencilMask(~0);
 	//glStencilFunc(GL_ALWAYS, 0, ~0);
 
-	if (true)// zpass does not work yet
+    if (/* DISABLES CODE */ (true))// zpass does not work yet
 	{
 		Material.org.BackfaceCulling = true;
 		Material.org.FrontfaceCulling = false;

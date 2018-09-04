@@ -6,7 +6,8 @@
 #define __IRR_ALLOCATOR_H_INCLUDED__
 
 #include "irrTypes.h"
-#include <new>
+//#include <new>
+#include <memory>
 // necessary for older compilers
 #include <memory.h>
 
@@ -44,7 +45,7 @@ public:
 	//! Construct an element
 	void construct(T* ptr, const T&e)
 	{
-		new ((void*)ptr) T(e);
+        new ((void*)ptr) T(e);
 	}
 
 	//! Destruct an element

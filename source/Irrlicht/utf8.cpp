@@ -233,29 +233,6 @@ static void PHYSFS_utf8ToUcs4(const char *src, u32 *dst, u64 len)
 	*dst = 0;
 } /* PHYSFS_utf8ToUcs4 */
 
-
-static void PHYSFS_utf8ToUcs2(const char *src, u16 *dst, u64 len)
-{
-	len -= sizeof (u16);   /* save room for null char. */
-	while (len >= sizeof (u16))
-	{
-		u32 cp = utf8codepoint(&src);
-		if (cp == 0)
-			break;
-		else if (cp == UNICODE_BOGUS_CHAR_VALUE)
-			cp = UNICODE_BOGUS_CHAR_CODEPOINT;
-
-		/* !!! BLUESKY: UTF-16 surrogates? */
-		if (cp > 0xFFFF)
-			cp = UNICODE_BOGUS_CHAR_CODEPOINT;
-
-		*(dst++) = cp;
-		len -= sizeof (u16);
-	} /* while */
-
-	*dst = 0;
-} /* PHYSFS_utf8ToUcs2 */
-
 static void utf8fromcodepoint(u32 cp, char **_dst, u64 *_len)
 {
 	char *dst = *_dst;

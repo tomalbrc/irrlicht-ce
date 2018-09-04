@@ -493,6 +493,10 @@ static bool firstLaunch = true;
     return (self);
 }
 
+- (void)applicationWillBecomeActive:(NSNotification *)notification {
+    
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification*)notification
 {
     Quit = false;
@@ -578,7 +582,7 @@ CIrrDeviceMacOSX::CIrrDeviceMacOSX(const SIrrlichtCreationParameters& param)
 		{
 			[[NSAutoreleasePool alloc] init];
 			[NSApplication sharedApplication];
-			[NSApp setDelegate:(id<NSFileManagerDelegate>)[[[CIrrDelegateOSX alloc] initWithDevice:this] autorelease]];
+			[NSApp setDelegate:(id<NSApplicationDelegate>)[[[CIrrDelegateOSX alloc] initWithDevice:this] autorelease]];
             
             // Create menu
             
@@ -692,7 +696,7 @@ bool CIrrDeviceMacOSX::createWindow()
                 y = screenHeight - y - CreationParams.WindowSize.Height;
             }
             
-            Window = [[NSWindow alloc] initWithContentRect:NSMakeRect(x, y, CreationParams.WindowSize.Width,CreationParams.WindowSize.Height) styleMask:NSTitledWindowMask+NSClosableWindowMask+NSResizableWindowMask backing:type defer:FALSE];
+            Window = [[NSWindow alloc] initWithContentRect:NSMakeRect(x, y, CreationParams.WindowSize.Width,CreationParams.WindowSize.Height) styleMask:NSTitledWindowMask|NSClosableWindowMask|NSResizableWindowMask backing:type defer:YES];
 
             if (CreationParams.WindowPosition.X == -1 && CreationParams.WindowPosition.Y == -1)
                 [Window center];
@@ -811,6 +815,7 @@ void CIrrDeviceMacOSX::setResize(int width, int height)
     {
         NSOpenGLContext* Context = (NSOpenGLContext*)ContextManager->getContext().OpenGLOSX.Context;
         
+        
         if (Context)
             [Context update];
     }
@@ -861,11 +866,15 @@ void CIrrDeviceMacOSX::createDriver()
                 {
                     os::Printer::log("Could not create OpenGL driver.", ELL_ERROR);
                 }
-                
-                if (Window)
-                    [(NSOpenGLContext*)ContextManager->getContext().OpenGLOSX.Context setView:[Window contentView]];
-                else
+
+                if (Window) {
+                    NSOpenGLView *view = (NSOpenGLView*)(ContextManager->getContext().OpenGLOSX.View);
+                    [view setFrame:Window.contentView.bounds];
+                    [Window.contentView addSubview:view];
+                }
+                else {
                     [(NSOpenGLContext*)ContextManager->getContext().OpenGLOSX.Context setView:(NSView*)CreationParams.WindowId];
+                }
 
 #ifndef __MAC_10_6
                 CGLContextObj CGLContext = (CGLContextObj)[(NSOpenGLContext*)ContextManager->getContext().OpenGLOSX.Context CGLContextObj];
@@ -1204,7 +1213,9 @@ void CIrrDeviceMacOSX::storeMouseLocation()
 	{
 		NSPoint	p;
 		p = [NSEvent mouseLocation];
-		p = [Window convertScreenToBase:p];
+        
+        CGPoint pcg = [Window convertRectToScreen:NSMakeRect(p.x, p.y, 0, 0)].origin;
+		p = NSMakePoint(pcg.x, pcg.y);
 		x = (int)p.x;
 		y = DeviceHeight - (int)p.y;
 	}
@@ -1257,7 +1268,7 @@ void CIrrDeviceMacOSX::setMouseLocation(int x,int y)
 	c.y = p.y;
 
 #ifdef __MAC_10_6
-    CGEventRef ev = CGEventCreateMouseEvent(0, kCGEventMouseMoved, c, 0);
+    CGEventRef ev = CGEventCreateMouseEvent(0, kCGEventMouseMoved, c, kCGMouseButtonLeft);
     CGEventPost(kCGHIDEventTap, ev);
     CFRelease(ev);
 #else

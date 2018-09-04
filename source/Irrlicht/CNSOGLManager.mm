@@ -3,7 +3,7 @@
 // For conditions of distribution and use, see copyright notice in Irrlicht.h
 
 #include "CNSOGLManager.h"
-
+#import <AppKit/AppKit.h>
 #ifdef _IRR_COMPILE_WITH_NSOGL_MANAGER_
 
 #include "os.h"
@@ -51,15 +51,18 @@ bool CNSOGLManager::generateSurface()
             NSOpenGLPFANoRecovery,
             NSOpenGLPFAAccelerated,
             NSOpenGLPFADoubleBuffer,
-            NSOpenGLPFADepthSize, depthSize,
+            NSOpenGLPFADepthSize, (NSOpenGLPixelFormatAttribute)depthSize,
             NSOpenGLPFAColorSize, Params.Bits,
-            NSOpenGLPFAAlphaSize, alphaSize,
+            NSOpenGLPFAAlphaSize, (NSOpenGLPixelFormatAttribute)alphaSize,
             NSOpenGLPFASampleBuffers, 1,
             NSOpenGLPFASamples, Params.AntiAlias,
-            NSOpenGLPFAStencilSize, Params.Stencilbuffer ? 1 : 0,
+            NSOpenGLPFAStencilSize, (NSOpenGLPixelFormatAttribute)(Params.Stencilbuffer ? 1 : 0),
             //NSOpenGLPFAFullScreen,
-            0
+            //NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion4_1Core,
+            0,
         };
+        
+        
 
         u32 Steps = 6;
         
@@ -85,7 +88,7 @@ bool CNSOGLManager::generateSurface()
                 if (Attribs[8])
                 {
                     Attribs[8] = 0;
-                        
+
                     if (Params.AntiAlias)
                     {
                         Attribs[10] = 1;
@@ -100,7 +103,7 @@ bool CNSOGLManager::generateSurface()
                 if (Attribs[14])
                 {
                     Attribs[14] = 0;
-                        
+
                     if (Params.AntiAlias)
                     {
                         Attribs[10] = 1;
@@ -131,7 +134,7 @@ bool CNSOGLManager::generateSurface()
                 os::Printer::log("Could not get pixel format.");
                 return false;
             }
-            
+        
             PixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:Attribs];
         }
         while (PixelFormat == nil);
@@ -165,6 +168,10 @@ bool CNSOGLManager::generateContext()
 {
     NSOpenGLContext* Context = [[NSOpenGLContext alloc] initWithFormat:PixelFormat shareContext:nil];
     
+    NSOpenGLView *v = [[NSOpenGLView alloc] initWithFrame:NSMakeRect(0, 0, 100, 100) pixelFormat:PixelFormat];
+    
+    Context = [v openGLContext];
+    
     GLint Vsync = Params.Vsync ? 1 : 0;
     [Context setValues:&Vsync forParameter:NSOpenGLCPSwapInterval];
 
@@ -175,10 +182,12 @@ bool CNSOGLManager::generateContext()
 	}
 
 	// set exposed data
-	CurrentContext.OpenGLOSX.Context = Context;
-    
+    CurrentContext.OpenGLOSX.Context = Context;
+    CurrentContext.OpenGLOSX.View = v;
+
 	if (!PrimaryContext.OpenGLOSX.Context)
-		PrimaryContext.OpenGLOSX.Context = CurrentContext.OpenGLOSX.Context;
+		PrimaryContext.OpenGLOSX.Context = CurrentContext.OpenGLOSX.Context,
+        PrimaryContext.OpenGLOSX.View = CurrentContext.OpenGLOSX.View;
 
 	return true;
 }

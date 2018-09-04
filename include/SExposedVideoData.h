@@ -68,6 +68,9 @@ struct SExposedVideoData
         //! The NSOpenGLContext object.
         void* Context;
 
+        //! The NSOpenGLView since NSOpenGLContext's setView is deprecated
+        void* View;
+        
         //! The NSWindow object.
         void* Window;
     };

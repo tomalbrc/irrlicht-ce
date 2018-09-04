@@ -611,24 +611,6 @@ bool C3DSMeshFileLoader::readTrackChunk(io::IReadFile* file, ChunkData& data,
 	data.read += 12;
 	vec-=pivot;
 
-	// apply transformation to mesh buffer
-	if (false)//mb)
-	{
-		video::S3DVertex *vertices=(video::S3DVertex*)mb->getVertices();
-		if (data.header.id==C3DS_POS_TRACK_TAG)
-		{
-			for (u32 i=0; i<mb->getVertexCount(); ++i)
-				vertices[i].Pos+=vec;
-		}
-		else if (data.header.id==C3DS_ROT_TRACK_TAG)
-		{
-			//TODO
-		}
-		else if (data.header.id==C3DS_SCL_TRACK_TAG)
-		{
-			//TODO
-		}
-	}
 	// skip further frames
 	file->seek(data.header.length - data.read, true);
 	data.read += data.header.length - data.read;
